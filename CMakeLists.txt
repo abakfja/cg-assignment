@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 project(Hello-World)
 
 # Source files
-set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/source")
-set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries")
+set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(SOURCES "${SRC_DIR}/main.cpp")
 
 # Executable definition and properties
