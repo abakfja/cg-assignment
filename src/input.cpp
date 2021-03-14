@@ -13,6 +13,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "main.h"
+#include "camera.h"
+
+extern Camera camera;
 
 bool cannon_keyboard_input = true;
 bool drag_pan = false, old_cki;
@@ -84,5 +87,5 @@ void mouseButton(GLFWwindow *window, int button, int action, int mods) {
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    // Do something
+
 }

@@ -1,6 +1,8 @@
 #include "main.h"
 #include "timer.h"
-#include "ball.h"
+#include "polyhedra.h"
+#include "camera.h"
+#include "axes.h"
 
 using namespace std;
 
@@ -12,10 +14,11 @@ GLFWwindow *window;
 * Customizable functions *
 **************************/
 
-Ball ball1;
+Polyhedron cube;
+Camera camera;
+Axes axes;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
-float camera_rotation_angle = 0;
 
 Timer t60(1.0 / 60);
 
@@ -29,17 +32,15 @@ void draw() {
     // Don't change unless you know what you are doing
     glUseProgram(programID);
 
-    // Eye - Location of camera. Don't change unless you are sure!!
-    glm::vec3 eye(5 * cos(camera_rotation_angle * M_PI / 180.0f), 0, 5 * sin(camera_rotation_angle * M_PI / 180.0f));
     // Target - Where is the camera looking at.  Don't change unless you are sure!!
-    glm::vec3 target(0, 0, 0);
-    // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
-    glm::vec3 up(0, 1, 0);
+    camera.target = camera.pos - glm::vec3(0, 0, +14.0f);
 
     // Compute Camera matrix (view)
-    Matrices.view = glm::lookAt(eye, target, up); // Rotating Camera for 3D
+    Matrices.view = glm::lookAt(camera.pos, camera.target, camera.up); // Rotating Camera for 3D
     // Don't change unless you are sure!!
     // Matrices.view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)); // Fixed camera for 2D (ortho) in XY plane
+
+    Matrices.projection = glm::perspective((float) glm::radians(45.0), 1.0f, 0.1f, 100.0f);
 
     // Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
     // Don't change unless you are sure!!
@@ -51,29 +52,74 @@ void draw() {
     glm::mat4 MVP;  // MVP = Projection * View * Model
 
     // Scene render
-    ball1.draw(VP);
+    cube.draw(VP);
+    axes.draw(VP);
 }
 
-void tick_input(GLFWwindow *window) {
-    int left = glfwGetKey(window, GLFW_KEY_LEFT);
-    int right = glfwGetKey(window, GLFW_KEY_RIGHT);
-    if (left) {
-        // Do something
+void tick_input(GLFWwindow *glfWwindow) {
+    {
+        int left = glfwGetKey(glfWwindow, GLFW_KEY_LEFT);
+        int right = glfwGetKey(glfWwindow, GLFW_KEY_RIGHT);
+        int up = glfwGetKey(glfWwindow, GLFW_KEY_UP);
+        int down = glfwGetKey(glfWwindow, GLFW_KEY_DOWN);
+        int in = glfwGetKey(glfWwindow, GLFW_KEY_PAGE_UP);
+        int out = glfwGetKey(glfWwindow, GLFW_KEY_PAGE_DOWN);
+
+
+        if (left) {
+            camera.pos.x -= camera.speed.x;
+        }
+        if (up) {
+            camera.pos.y += camera.speed.y;
+        }
+        if (down) {
+            camera.pos.y -= camera.speed.y;
+        }
+        if (right) {
+            camera.pos.x += camera.speed.x;
+        }
+        if (in) {
+            camera.pos.z += camera.speed.z;
+        }
+        if (out) {
+            camera.pos.z -= camera.speed.z;
+        }
+    }
+    {
+        int left = glfwGetKey(glfWwindow, GLFW_KEY_A);
+        int right = glfwGetKey(glfWwindow, GLFW_KEY_D);
+        int up = glfwGetKey(glfWwindow, GLFW_KEY_W);
+        int down = glfwGetKey(glfWwindow, GLFW_KEY_S);
+
+        if (left) {
+            cube.position.x -= cube.speed;
+        }
+        if (up) {
+            cube.position.y += cube.speed;
+        }
+        if (down) {
+            cube.position.y -= cube.speed;
+        }
+        if (right) {
+            cube.position.x += cube.speed;
+        }
+//        axes.set_position(cube.position);
     }
 }
 
 void tick_elements() {
-    ball1.tick();
-    camera_rotation_angle += 1;
+    cube.tick();
 }
 
 /* Initialize the OpenGL rendering properties */
 /* Add all the models to be created here */
-void initGL(GLFWwindow *window, int width, int height) {
+void initGL(GLFWwindow *glfWwindow, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
 
-    ball1 = Ball(0, 0, COLOR_RED);
+    cube = Polyhedron(0, 0, COLOR_GREEN);
+    camera = Camera(glm::vec3(0, 0, 5), glm::vec3(0, 1, 0), glm::vec3(0.1f, 0.1f, 0.1f));
+    axes = Axes(0, 0);
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("../src/shaders/shader.vert", "../src/shaders/shader.frag");
@@ -81,7 +127,7 @@ void initGL(GLFWwindow *window, int width, int height) {
     Matrices.MatrixID = glGetUniformLocation(programID, "MVP");
 
 
-    reshapeWindow(window, width, height);
+    reshapeWindow(glfWwindow, width, height);
 
     // Background color of the scene
     glClearColor(COLOR_BACKGROUND.r / 256.0, COLOR_BACKGROUND.g / 256.0, COLOR_BACKGROUND.b / 256.0,

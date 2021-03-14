@@ -4,14 +4,16 @@
 #define BALL_H
 
 
-class Ball {
+class Polyhedron {
 public:
-    Ball() {}
-
-    Ball(float x, float y, color_t color);
 
     glm::vec3 position{};
-    float rotation;
+    float rotation{};
+    double speed{};
+
+    Polyhedron() = default;
+
+    Polyhedron(float x, float y, color_t color);
 
     void draw(glm::mat4 VP);
 
@@ -19,9 +21,8 @@ public:
 
     void tick();
 
-    double speed;
 private:
-    VAO *object;
+    VAO *object{};
 };
 
 #endif // BALL_H
