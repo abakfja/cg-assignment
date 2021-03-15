@@ -1,8 +1,8 @@
 #include "main.h"
 #include "timer.h"
 #include "polyhedra.h"
-#include "camera.h"
 #include "axes.h"
+#include "camera.h"
 
 using namespace std;
 
@@ -17,6 +17,7 @@ GLFWwindow *window;
 Polyhedron cube;
 Camera camera;
 Axes axes;
+Camera::MOTION Camera::motion;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -33,10 +34,14 @@ void draw() {
     glUseProgram(programID);
 
     // Target - Where is the camera looking at.  Don't change unless you are sure!!
-    camera.target = camera.pos - glm::vec3(0, 0, +14.0f);
-
+    if (Camera::motion == Camera::MOTION::STATIC) {
+        camera.target = camera.pos - glm::vec3(0, 0, 1.0f);
+    }
+    if (Camera::motion == Camera::MOTION::ROTATION) {
+        auto mat = camera.rotate();
+        Matrices.view = glm::lookAt(camera.pos, cube.position, camera.up) * mat; // Rotating Camera for 3D
+    }
     // Compute Camera matrix (view)
-    Matrices.view = glm::lookAt(camera.pos, camera.target, camera.up); // Rotating Camera for 3D
     // Don't change unless you are sure!!
     // Matrices.view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)); // Fixed camera for 2D (ortho) in XY plane
 
@@ -65,24 +70,33 @@ void tick_input(GLFWwindow *glfWwindow) {
         int in = glfwGetKey(glfWwindow, GLFW_KEY_PAGE_UP);
         int out = glfwGetKey(glfWwindow, GLFW_KEY_PAGE_DOWN);
 
-
-        if (left) {
-            camera.pos.x -= camera.speed.x;
-        }
-        if (up) {
-            camera.pos.y += camera.speed.y;
-        }
-        if (down) {
-            camera.pos.y -= camera.speed.y;
-        }
-        if (right) {
-            camera.pos.x += camera.speed.x;
-        }
-        if (in) {
-            camera.pos.z += camera.speed.z;
-        }
-        if (out) {
-            camera.pos.z -= camera.speed.z;
+        if (Camera::motion == Camera::MOTION::STATIC and ANY_MOVEMENT) {
+            if (left) camera.pos.x -= camera.speed.x;
+            if (up) camera.pos.y += camera.speed.y;
+            if (down) camera.pos.y -= camera.speed.y;
+            if (right) camera.pos.x += camera.speed.x;
+            if (in) camera.pos.z += camera.speed.z;
+            if (out) camera.pos.z -= camera.speed.z;
+        } else if (Camera::motion == Camera::MOTION::ROTATION and ANY_MOVEMENT) {
+            if (left) {
+                camera.pos.x -= camera.speed.x;
+            }
+            if (up) {
+                camera.pos.y += camera.speed.y;
+            }
+            if (down) {
+                camera.pos.y -= camera.speed.y;
+            }
+            if (right) {
+                camera.pos.x += camera.speed.x;
+            }
+            if (in) {
+                camera.pos.z += camera.speed.z;
+            }
+            if (out) {
+                camera.pos.z -= camera.speed.z;
+            }
+            camera.update_state(cube.position);
         }
     }
     {
@@ -90,20 +104,32 @@ void tick_input(GLFWwindow *glfWwindow) {
         int right = glfwGetKey(glfWwindow, GLFW_KEY_D);
         int up = glfwGetKey(glfWwindow, GLFW_KEY_W);
         int down = glfwGetKey(glfWwindow, GLFW_KEY_S);
+        int in = glfwGetKey(glfWwindow, GLFW_KEY_Q);
+        int out = glfwGetKey(glfWwindow, GLFW_KEY_E);
 
-        if (left) {
-            cube.position.x -= cube.speed;
+        if (ANY_MOVEMENT) {
+            if (left) {
+                cube.position.x -= cube.speed;
+            }
+            if (up) {
+                cube.position.y += cube.speed;
+            }
+            if (down) {
+                cube.position.y -= cube.speed;
+            }
+            if (right) {
+                cube.position.x += cube.speed;
+            }
+            if (in) {
+                cube.position.z -= cube.speed;
+            }
+            if (out) {
+                cube.position.z += cube.speed;
+            }
+            if (Camera::motion == Camera::MOTION::ROTATION) {
+                camera.update_state(cube.position);
+            }
         }
-        if (up) {
-            cube.position.y += cube.speed;
-        }
-        if (down) {
-            cube.position.y -= cube.speed;
-        }
-        if (right) {
-            cube.position.x += cube.speed;
-        }
-//        axes.set_position(cube.position);
     }
 }
 
@@ -117,9 +143,10 @@ void initGL(GLFWwindow *glfWwindow, int width, int height) {
     /* Objects should be created before any other gl function and shaders */
     // Create the models
 
-    cube = Polyhedron(0, 0, COLOR_GREEN);
+    cube = Polyhedron(0, 0);
     camera = Camera(glm::vec3(0, 0, 5), glm::vec3(0, 1, 0), glm::vec3(0.1f, 0.1f, 0.1f));
     axes = Axes(0, 0);
+    camera.update_state(cube.position);
 
     // Create and compile our GLSL program from the shaders
     programID = LoadShaders("../src/shaders/shader.vert", "../src/shaders/shader.frag");

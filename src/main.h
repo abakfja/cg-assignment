@@ -1,5 +1,5 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef CG_ASSIGNMENT_MAIN_H
+#define CG_ASSIGNMENT_MAIN_H
 
 #include <iostream>
 #include <cmath>
@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 
 #define GLM_FORCE_RADIANS
+
+#define ANY_MOVEMENT (left or up or down or right or in or out)
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
@@ -29,11 +31,11 @@ GLuint LoadShaders(const char *vertex_file_path, const char *fragment_file_path)
 struct VAO *create3DObject(GLenum primitive_mode, int numVertices, const GLfloat *vertex_buffer_data,
                            const GLfloat *color_buffer_data, GLenum fill_mode = GL_FILL);
 
-struct VAO *create3DObject(GLenum primitive_mode, int numVertices, const GLfloat *vertex_buffer_data, const GLfloat red,
-                           const GLfloat green, const GLfloat blue, GLenum fill_mode = GL_FILL);
+struct VAO *create3DObject(GLenum primitive_mode, int numVertices, const GLfloat *vertex_buffer_data, GLfloat red,
+                           GLfloat green, GLfloat blue, GLenum fill_mode = GL_FILL);
 
 struct VAO *
-create3DObject(GLenum primitive_mode, int numVertices, const GLfloat *vertex_buffer_data, const color_t color,
+create3DObject(GLenum primitive_mode, int numVertices, const GLfloat *vertex_buffer_data, color_t color,
                GLenum fill_mode = GL_FILL);
 
 void draw3DObject(struct VAO *vao);
@@ -99,5 +101,12 @@ extern const color_t COLOR_RED;
 extern const color_t COLOR_GREEN;
 extern const color_t COLOR_BLACK;
 extern const color_t COLOR_BACKGROUND;
+
+
+const glm::vec3 POS[3] = {
+        {10,  10,  10},
+        {-10, 0,   -10},
+        {0,   -10, 0}
+};
 
 #endif

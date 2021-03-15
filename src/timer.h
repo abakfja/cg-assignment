@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef CG_ASSIGNMENT_TIMER_H
+#define CG_ASSIGNMENT_TIMER_H
 
 
 class Timer {

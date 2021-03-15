@@ -1,7 +1,7 @@
 #include "main.h"
 
-#ifndef BALL_H
-#define BALL_H
+#ifndef CG_ASSIGNMENT_POLYHEDRA_H
+#define CG_ASSIGNMENT_POLYHEDRA_H
 
 
 class Polyhedron {
@@ -13,7 +13,7 @@ public:
 
     Polyhedron() = default;
 
-    Polyhedron(float x, float y, color_t color);
+    Polyhedron(float x, float y);
 
     void draw(glm::mat4 VP);
 
