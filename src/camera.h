@@ -32,6 +32,10 @@ public:
 
     Camera() = default;
 
+    void set_position(glm::vec3 position) {
+        pos = position;
+    }
+
     Camera(glm::vec3 _pos, glm::vec3 _up, glm::vec3 _speed) :
             pos{_pos}, up{_up}, speed{_speed} {
         motion = MOTION::ROTATION;
@@ -57,7 +61,7 @@ public:
         assert(dot < 0.1);
     }
 
-    void set_state(MOTION mm) {
+    static void set_state(MOTION mm) {
         motion = mm;
     }
 
@@ -73,13 +77,12 @@ public:
         set_vectors(t);
     }
 
+
     void update_state(glm::vec3 t, glm::vec3 p) {
-        assert(motion == MOTION::PREDEFINED);
+        assert(motion != MOTION::ROTATION);
         this->pos = p;
         this->target = t;
     }
-
-
 };
 
 #endif //CG_ASSIGNMENT_CAMERA_H

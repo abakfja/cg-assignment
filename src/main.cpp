@@ -18,6 +18,7 @@ Polyhedron cube;
 Camera camera;
 Axes axes;
 Camera::MOTION Camera::motion;
+Polyhedron::MOTION Polyhedron::motion;
 
 float screen_zoom = 1, screen_center_x = 0, screen_center_y = 0;
 
@@ -34,13 +35,15 @@ void draw() {
     glUseProgram(programID);
 
     // Target - Where is the camera looking at.  Don't change unless you are sure!!
-    if (Camera::motion == Camera::MOTION::STATIC) {
-        camera.target = camera.pos - glm::vec3(0, 0, 1.0f);
-    }
-    if (Camera::motion == Camera::MOTION::ROTATION) {
+    if (CAMERA_MOVING) {
         auto mat = camera.rotate();
         Matrices.view = glm::lookAt(camera.pos, cube.position, camera.up) * mat; // Rotating Camera for 3D
+    } else if (CAMERA_STATIC) {
+        Matrices.view = glm::lookAt(camera.pos, camera.pos - glm::vec3(0, 0, 1), UP);
+    } else {
+        Matrices.view = glm::lookAt(camera.pos, cube.position, UP);
     }
+
     // Compute Camera matrix (view)
     // Don't change unless you are sure!!
     // Matrices.view = glm::lookAt(glm::vec3(0, 0, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0)); // Fixed camera for 2D (ortho) in XY plane
@@ -63,6 +66,44 @@ void draw() {
 
 void tick_input(GLFWwindow *glfWwindow) {
     {
+        if (glfwGetKey(glfWwindow, GLFW_KEY_J)) {
+            Camera::set_state(Camera::MOTION::STATIC);
+            Polyhedron::motion = Polyhedron::MOTION::STATIC;
+            camera.set_position(CAMERA_POS);
+        }
+        if (glfwGetKey(glfWwindow, GLFW_KEY_K)) {
+            Camera::set_state(Camera::MOTION::ROTATION);
+            cube.set_position(0, 0);
+            camera.set_position(CAMERA_POS);
+            camera.update_state(cube.position);
+        }
+        if (glfwGetKey(glfWwindow, GLFW_KEY_L)) {
+            if (Polyhedron::motion == Polyhedron::MOTION::STATIC) {
+                Polyhedron::set_state(Polyhedron::MOTION::ROTATION);
+            }
+        }
+        if (glfwGetKey(glfWwindow, GLFW_KEY_SEMICOLON)) {
+            if (Polyhedron::motion == Polyhedron::MOTION::ROTATION) {
+                Polyhedron::set_state(Polyhedron::MOTION::STATIC);
+            }
+        }
+        if (glfwGetKey(glfWwindow, GLFW_KEY_U)) {
+            Camera::set_state(Camera::MOTION::PREDEFINED);
+            cube.set_position(0, 0);
+            camera.set_position(POS[0]);
+        }
+        if (glfwGetKey(glfWwindow, GLFW_KEY_I)) {
+            Camera::set_state(Camera::MOTION::PREDEFINED);
+            cube.set_position(0, 0);
+            camera.set_position(POS[1]);
+        }
+        if (glfwGetKey(glfWwindow, GLFW_KEY_O)) {
+            Camera::set_state(Camera::MOTION::PREDEFINED);
+            cube.set_position(0, 0);
+            camera.set_position(POS[2]);
+        }
+    }
+    {
         int left = glfwGetKey(glfWwindow, GLFW_KEY_LEFT);
         int right = glfwGetKey(glfWwindow, GLFW_KEY_RIGHT);
         int up = glfwGetKey(glfWwindow, GLFW_KEY_UP);
@@ -70,14 +111,14 @@ void tick_input(GLFWwindow *glfWwindow) {
         int in = glfwGetKey(glfWwindow, GLFW_KEY_PAGE_UP);
         int out = glfwGetKey(glfWwindow, GLFW_KEY_PAGE_DOWN);
 
-        if (Camera::motion == Camera::MOTION::STATIC and ANY_MOVEMENT) {
+        if (CAMERA_STATIC and ANY_MOVEMENT) {
             if (left) camera.pos.x -= camera.speed.x;
             if (up) camera.pos.y += camera.speed.y;
             if (down) camera.pos.y -= camera.speed.y;
             if (right) camera.pos.x += camera.speed.x;
             if (in) camera.pos.z += camera.speed.z;
             if (out) camera.pos.z -= camera.speed.z;
-        } else if (Camera::motion == Camera::MOTION::ROTATION and ANY_MOVEMENT) {
+        } else if (CAMERA_MOVING and ANY_MOVEMENT) {
             if (left) {
                 camera.pos.x -= camera.speed.x;
             }
@@ -126,7 +167,7 @@ void tick_input(GLFWwindow *glfWwindow) {
             if (out) {
                 cube.position.z += cube.speed;
             }
-            if (Camera::motion == Camera::MOTION::ROTATION) {
+            if (CAMERA_MOVING) {
                 camera.update_state(cube.position);
             }
         }
@@ -144,7 +185,7 @@ void initGL(GLFWwindow *glfWwindow, int width, int height) {
     // Create the models
 
     cube = Polyhedron(0, 0);
-    camera = Camera(glm::vec3(0, 0, 5), glm::vec3(0, 1, 0), glm::vec3(0.1f, 0.1f, 0.1f));
+    camera = Camera(CAMERA_POS, UP, glm::vec3(0.1f, 0.1f, 0.1f));
     axes = Axes(0, 0);
     camera.update_state(cube.position);
 
@@ -203,8 +244,7 @@ int main(int argc, char **argv) {
 }
 
 bool detect_collision(bounding_box_t a, bounding_box_t b) {
-    return (abs(a.x - b.x) * 2 < (a.width + b.width)) &&
-           (abs(a.y - b.y) * 2 < (a.height + b.height));
+    return (abs(a.x - b.x) * 2 < (a.width + b.width)) && (abs(a.y - b.y) * 2 < (a.height + b.height));
 }
 
 void reset_screen() {

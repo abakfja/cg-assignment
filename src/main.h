@@ -12,6 +12,10 @@
 
 #define ANY_MOVEMENT (left or up or down or right or in or out)
 
+#define CAMERA_STATIC Camera::motion == Camera::MOTION::STATIC
+
+#define CAMERA_MOVING Camera::motion == Camera::MOTION::ROTATION
+
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -102,11 +106,13 @@ extern const color_t COLOR_GREEN;
 extern const color_t COLOR_BLACK;
 extern const color_t COLOR_BACKGROUND;
 
-
 const glm::vec3 POS[3] = {
-        {10,  10,  10},
-        {-10, 0,   -10},
-        {0,   -10, 0}
+        {4,  4,  4},
+        {-4, 0,   -5},
+        {4,   -10, 0}
 };
+
+const glm::vec3 CAMERA_POS(0, 0, 5);
+const glm::vec3 UP(0, 1, 0);
 
 #endif

@@ -10,6 +10,13 @@ public:
     glm::vec3 position{};
     float rotation{};
     double speed{};
+    double rotation_speed{};
+
+    enum class MOTION {
+        STATIC,
+        ROTATION
+    };
+    static MOTION motion;
 
     Polyhedron() = default;
 
@@ -18,6 +25,10 @@ public:
     void draw(glm::mat4 VP);
 
     void set_position(float x, float y);
+
+    static void set_state(Polyhedron::MOTION m) {
+        motion = m;
+    }
 
     void tick();
 
